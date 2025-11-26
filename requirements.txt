@@ -1,6 +1,5 @@
 streamlit
 requests
 groq
-
 st-clickable-images
-option_menu
+streamlit-option-menu
