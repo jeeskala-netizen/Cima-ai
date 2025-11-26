@@ -1,175 +1,183 @@
 import streamlit as st
 from st_clickable_images import clickable_images
+from streamlit_option_menu import option_menu # تأكد من تثبيت هذه المكتبة
 import config
 import styles
 import api
 
-# --- 1. الإعدادات والتهيئة ---
-st.set_page_config(page_title="AI Cinema Hub", page_icon="🍿", layout="wide")
+# --- 1. الإعدادات الأولية ---
+st.set_page_config(page_title="AI Cinema Hub", page_icon="🎬", layout="wide")
 styles.load_css()
 
-# --- 📢 شريط المعلومات المتحرك (الجديد) ---
+# تهيئة الذاكرة (Session State)
+if 'page' not in st.session_state: st.session_state.page = 'home' # home, details
+if 'selected_movie' not in st.session_state: st.session_state.selected_movie = None
+if 'favorites' not in st.session_state: st.session_state.favorites = []
+if 'content_type' not in st.session_state: st.session_state.content_type = "movie" # movie or tv
+
+# --- 2. الشريط العلوي (بديل القائمة الجانبية) ---
+# شريط الأخبار
 st.markdown("""
 <div class="ticker-wrap">
-    <div class="ticker-item">
-        🎬 مرحبًا بك في AI Cinema Hub! منصتك الشاملة التي تقترح عليك الأفلام والمسلسلات بناءً على التقييمات العالمية الدقيقة &nbsp;&nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;&nbsp; 
-        💡 معلومة ذكية: يمكنك استخدام "الذكاء الاصطناعي" للبحث عن أي فيلم بوصف القصة فقط! فعّل زر "العبقري" وجرب كتابة "فيلم عن سرقة بنك بذكاء" &nbsp;&nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;&nbsp; 
-        🌍 اكتشف الآن روائع السينما العالمية: الكورية، الأمريكية، العربية، التركية والمزيد!
-    </div>
-</div>
+<div class="ticker-item">
+✨ AI Cinema Hub: بوابتك الذكية لعالم السينما. جرب البحث بالذكاء الاصطناعي: "أريد فيلماً يشبه Inception لكن بنهاية سعيدة" ✨
+</div></div>
 """, unsafe_allow_html=True)
 
-# تهيئة الذاكرة
-if 'selected_item' not in st.session_state: st.session_state.selected_item = None
-if 'item_type' not in st.session_state: st.session_state.item_type = "movie"
-if 'favorites' not in st.session_state: st.session_state.favorites = []
-if 'current_analysis' not in st.session_state: st.session_state.current_analysis = None
-if 'analyzed_id' not in st.session_state: st.session_state.analyzed_id = None
+# القائمة العلوية
+selected_nav = option_menu(
+    menu_title=None,
+    options=["أفلام", "مسلسلات", "المفضلة", "بحث ذكي"],
+    icons=["film", "tv", "heart", "stars"],
+    default_index=0 if st.session_state.content_type == "movie" else 1,
+    orientation="horizontal",
+    styles={
+        "container": {"padding": "0!important", "background-color": "transparent"},
+        "icon": {"color": "orange", "font-size": "18px"}, 
+        "nav-link": {"font-size": "16px", "text-align": "center", "margin": "0px", "--hover-color": "#333"},
+        "nav-link-selected": {"background-color": "#E50914"},
+    }
+)
 
-# دوال المفضلة
-def is_favorite(id):
-    return any(m['id'] == id for m in st.session_state.favorites)
+# تحديث الحالة بناءً على القائمة العلوية
+if selected_nav == "أفلام":
+    st.session_state.content_type = "movie"
+    if st.session_state.page == 'library': st.session_state.page = 'home' # إعادة تعيين إذا كنا في المكتبة
+elif selected_nav == "مسلسلات":
+    st.session_state.content_type = "tv"
+elif selected_nav == "المفضلة":
+    st.session_state.page = "library"
 
-def toggle_favorite(item, type):
-    item['media_type'] = type 
-    if is_favorite(item['id']):
-        st.session_state.favorites = [m for m in st.session_state.favorites if m['id'] != item['id']]
-        st.toast("🗑️ تم الحذف")
-    else:
-        st.session_state.favorites.append(item)
-        st.toast("❤️ تم الإضافة")
+# --- 3. المنطق الرئيسي للعرض ---
 
-# --- 2. القائمة الجانبية ---
-with st.sidebar:
-    st.markdown("<div class='sidebar-logo'>AI CINEMA</div>", unsafe_allow_html=True)
+def show_details(item):
+    """عرض تفاصيل الفيلم/المسلسل"""
+    # زر عودة ذكي لا يعيد تحميل الصفحة بالكامل
+    if st.button("🔙 عودة للقائمة", key="back_btn"):
+        st.session_state.selected_movie = None
+        st.session_state.page = "home"
+        st.rerun()
+
+    # جلب المعلومات
+    title = item.get('title') or item.get('name')
+    org_title = item.get('original_title') or item.get('original_name')
+    backdrop = item.get('backdrop_path')
+    poster = item.get('poster_path')
     
-    if st.session_state.selected_item:
-        if st.button("⬅️ الرئيسية"):
-            st.session_state.selected_item = None
-            st.rerun()
-        st.markdown("<br>", unsafe_allow_html=True)
-
-    # اختيار النوع
-    content_type = st.radio("نوع المحتوى:", ["أفلام 🎬", "مسلسلات 📺"], horizontal=True, label_visibility="collapsed")
-    current_type = "movie" if content_type == "أفلام 🎬" else "tv"
+    # عرض الغلاف الخلفي الكبير
+    if backdrop:
+        st.image(config.BACKDROP_URL + backdrop, use_container_width=True)
     
-    st.markdown("---")
+    st.markdown(f"<h1 style='text-align: center'>{title}</h1>", unsafe_allow_html=True)
     
-    view_mode = st.radio("menu", ["🔍  الاستكشاف", "❤️  مكتبتي"], label_visibility="collapsed")
-    st.markdown("---")
-    
-    # المتغيرات
-    search_text = ""
-    ai_mode = False
-    category = "popular"
-    region = None
-
-    if view_mode == "🔍  الاستكشاف":
-        st.markdown("<p style='color:#888; font-size:0.8rem;'>أدوات البحث</p>", unsafe_allow_html=True)
-        ai_mode = st.toggle("تفعيل العبقري (AI)", value=False)
-        search_text = st.text_input("search", placeholder=f"ابحث عن {content_type}...", label_visibility="collapsed")
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        if poster:
+            st.image(config.IMAGE_URL + poster, use_container_width=True)
         
-        if not ai_mode:
-            st.markdown("<br>", unsafe_allow_html=True)
-            filter_type = st.radio("type", ["العالمية 🔥", "الدول 🌍"], horizontal=True, label_visibility="collapsed")
-            
-            if filter_type == "العالمية 🔥":
-                opts = ["popular", "top_rated", "upcoming"] if current_type == "movie" else ["popular", "top_rated", "on_the_air"]
-                labels = {"popular":"🔥 الرائج", "top_rated":"⭐ الأفضل", "upcoming":"📅 قريباً", "on_the_air":"📺 يُعرض الآن"}
-                category = st.radio("cat", opts, format_func=lambda x: labels[x])
+        # زر المفضلة
+        is_fav = any(f['id'] == item['id'] for f in st.session_state.favorites)
+        if st.button("💔 إزالة من المفضلة" if is_fav else "❤️ إضافة للمفضلة"):
+            if is_fav:
+                st.session_state.favorites = [f for f in st.session_state.favorites if f['id'] != item['id']]
+                st.toast("تم الحذف من مكتبتك")
             else:
-                opts = ["korea", "arabic", "turkey", "japan", "spain"]
-                labels = {"korea": "🇰🇷 كورية", "arabic": "🕌 عربية", "turkey": "🇹🇷 تركية", "japan": "🇯🇵 أنيمي/ياباني", "spain": "🇪🇸 إسبانية"}
-                region = st.radio("reg", opts, format_func=lambda x: labels[x])
-    else:
-        st.success(f"لديك {len(st.session_state.favorites)} في المفضلة")
+                item['media_type'] = st.session_state.content_type
+                st.session_state.favorites.append(item)
+                st.toast("تمت الإضافة لمكتبتك")
+            st.rerun()
 
-# --- 3. منطقة العرض ---
-if st.session_state.selected_item:
-    # >>> عرض التفاصيل <<<
-    m = st.session_state.selected_item
-    title = m.get('title') or m.get('name') or m.get('original_name')
-    org_title = m.get('original_title') or m.get('original_name')
-    ctype = st.session_state.item_type
-    
-    st.image(config.BACKDROP_URL + (m['backdrop_path'] or ""), use_container_width=True)
-    st.markdown(f"<h1 style='text-align: center; margin-bottom: 20px;'>{org_title}</h1>", unsafe_allow_html=True)
-    
-    c1, c2 = st.columns([3, 1])
-    with c2:
-        if m.get('poster_path'): st.image(config.IMAGE_URL + m['poster_path'], use_container_width=True)
-        lbl = "💔 إزالة" if is_favorite(m['id']) else "❤️ إضافة"
-        if st.button(lbl, use_container_width=True): toggle_favorite(m, ctype); st.rerun()
-        
-        st.markdown("---")
-        st.markdown("### 🎥 التريلر")
-        t = api.get_trailer(m['id'], ctype)
-        if t: st.video(t)
-        else: st.info("غير متوفر")
-
-    with c1:
-        st.markdown(f"### 🧬 تحليل {content_type} الذكي")
-        with st.spinner('🤔 جاري التحليل العميق...'):
-            if st.session_state.analyzed_id != m['id']:
-                st.session_state.current_analysis = api.generate_analysis(org_title, m['overview'], ctype)
-                st.session_state.analyzed_id = m['id']
-            
-            analysis = st.session_state.current_analysis
-            st.markdown(f"""
-            <div style="direction: rtl; text-align: right; background-color: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border-right: 5px solid #E50914; font-size: 1.1rem; line-height: 1.8; color: #e0e0e0;">
-                {analysis}
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        st.markdown("### 📝 القصة")
-        st.markdown(f"""<div style="direction: rtl; text-align: right;">{m['overview']}</div>""", unsafe_allow_html=True)
-        
-        date = m.get('release_date') or m.get('first_air_date') or 'غير معروف'
-        st.caption(f"📅 التاريخ: {date} | ⭐ التقييم: {m['vote_average']}")
-
-else:
-    # >>> عرض الشبكة <<<
-    items = []
-    
-    if view_mode == "❤️  مكتبتي":
-        st.markdown("<h1>مكتبتي ❤️</h1>", unsafe_allow_html=True)
-        items = st.session_state.favorites
-        if not items: st.info("المكتبة فارغة...")
-    
-    elif search_text:
-        st.markdown(f"<h1>نتائج البحث: {search_text}</h1>", unsafe_allow_html=True)
-        items = api.semantic_search(search_text) if ai_mode else api.search_tmdb(search_text, current_type)
-        if not items: st.warning("لا توجد نتائج.")
-    
-    else:
-        title_text = f"قائمة {content_type}"
-        if region: title_text += f" ({region})"
-        st.markdown(f"<h1>{title_text}</h1>", unsafe_allow_html=True)
-        
-        if current_type == "movie":
-            items = api.fetch_movies(category, region)
+    with col2:
+        # التريلر
+        trailer_url = api.get_trailer(item['id'], st.session_state.content_type)
+        if trailer_url:
+            st.video(trailer_url)
         else:
-            items = api.fetch_tv_shows(category, region)
-
-    if items:
-        imgs, names, indices = [], [], []
-        for i, item in enumerate(items):
-            if item.get('poster_path'):
-                imgs.append(config.IMAGE_URL + item['poster_path'])
-                names.append(item.get('title') or item.get('name'))
-                indices.append(i)
-        
-        if imgs:
-            clicked = clickable_images(
-                imgs, titles=names,
-                div_style={"display": "flex", "justify-content": "center", "flex-wrap": "wrap", "gap": "20px"},
-                img_style={"cursor": "pointer", "border-radius": "12px", "width": "180px", "transition": "transform 0.4s", "box-shadow": "0 10px 30px rgba(0,0,0,0.5)"},
-                key=f"grid_{content_type}_{category}_{region}"
-            )
+            st.info("عذراً، لا يوجد إعلان تشويقي متاح.")
             
-            if clicked > -1:
-                selected = items[indices[clicked]]
-                st.session_state.selected_item = selected
-                st.session_state.item_type = selected.get('media_type', current_type)
-                st.rerun()
+        st.markdown("### 📝 القصة")
+        st.write(item.get('overview', 'لا يتوفر وصف حالياً.'))
+        
+        st.markdown("---")
+        # التحليل الذكي
+        if st.button("🤖 اطلب رأي الناقد الذكي"):
+            with st.spinner("جاري تحليل السيناريو وكشف الثغرات..."):
+                analysis = api.generate_analysis(org_title, item.get('overview'), st.session_state.content_type)
+                st.markdown(f"<div class='analysis-box'>{analysis}</div>", unsafe_allow_html=True)
+
+def show_grid(items):
+    """عرض شبكة الأفلام"""
+    if not items:
+        st.warning("لا توجد نتائج لعرضها.")
+        return
+
+    images = []
+    titles = []
+    
+    for item in items:
+        path = item.get('poster_path')
+        if path:
+            images.append(config.IMAGE_URL + path)
+            titles.append(item.get('title') or item.get('name'))
+    
+    # عرض الصور القابلة للنقر
+    clicked = clickable_images(
+        images, 
+        titles=titles,
+        div_style={"display": "flex", "justify-content": "center", "flex-wrap": "wrap", "gap": "20px", "padding": "20px"},
+        img_style={"cursor": "pointer", "border-radius": "10px", "transition": "transform 0.3s", "width": "150px", "box-shadow": "0 5px 15px black"},
+    )
+    
+    if clicked > -1:
+        # عند النقر، نحدث الحالة ونعيد التحميل لعرض التفاصيل
+        st.session_state.selected_movie = items[clicked]
+        st.session_state.page = "details"
+        st.rerun()
+
+# --- 4. التحكم في توجيه الصفحات ---
+
+if st.session_state.page == "details" and st.session_state.selected_movie:
+    show_details(st.session_state.selected_movie)
+
+elif st.session_state.page == "library":
+    st.title("📂 مكتبتي الخاصة")
+    if not st.session_state.favorites:
+        st.info("مكتبتك فارغة حالياً.")
+    else:
+        show_grid(st.session_state.favorites)
+
+else: # الصفحة الرئيسية (Home)
+    # خيارات الفلترة تظهر فقط في الرئيسية
+    if selected_nav == "بحث ذكي":
+        st.title("🧠 البحث الدلالي بالذكاء الاصطناعي")
+        query = st.text_input("اوصف الفيلم الذي في خيالك...", placeholder="مثال: فيلم عن سرقة بنك بذكاء شديد ونهاية صادمة")
+        if query:
+            with st.spinner("الذكاء الاصطناعي يبحث لك..."):
+                results = api.semantic_search_ai(query)
+                show_grid(results)
+    else:
+        # أدوات التحكم (فلاتر) في الأعلى
+        c1, c2 = st.columns([1, 4])
+        with c1:
+            if st.session_state.content_type == "movie":
+                filter_opt = st.selectbox("تصنيف:", ["الرائج", "الأعلى تقييماً", "قريباً"], label_visibility="collapsed")
+                cat_map = {"الرائج": "popular", "الأعلى تقييماً": "top_rated", "قريباً": "upcoming"}
+            else:
+                filter_opt = st.selectbox("تصنيف:", ["الرائج", "الأعلى تقييماً", "يعرض الآن"], label_visibility="collapsed")
+                cat_map = {"الرائج": "popular", "الأعلى تقييماً": "top_rated", "يعرض الآن": "on_the_air"}
+            
+            region_opt = st.selectbox("الدولة:", ["الكل", "كوريا", "تركيا", "الهند", "العرب", "اليابان (أنيمي)"], label_visibility="collapsed")
+            reg_map = {"الكل": None, "كوريا": "korea", "تركيا": "turkey", "الهند": "india", "العرب": "arabic", "اليابان (أنيمي)": "japan"}
+
+        with c2:
+            search_query = st.text_input("بحث سريع...", label_visibility="collapsed", placeholder=f"ابحث في {selected_nav}...")
+
+        # منطق جلب البيانات
+        if search_query:
+            results = api.search_tmdb(search_query, st.session_state.content_type)
+        else:
+            category = cat_map[filter_opt]
+            region = reg_map[region_opt]
+            results = api.fetch_content(st.session_state.content_type, category, region)
+        
+        show_grid(results)
