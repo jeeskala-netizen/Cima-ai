@@ -5,29 +5,35 @@ def load_css():
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap');
         
-        /* 1. إعدادات الصفحة (إصلاح المشكلة) */
-        /* نترك الاتجاه العام LTR لكي تعمل القائمة، لكن نجبر النصوص على RTL */
-        html, body {
+        /* 1. إجبار الصفحة بالكامل على الاتجاه لليمين */
+        html, body, .stApp {
             font-family: 'Cairo', sans-serif; 
             background-color: #050505 !important; 
             color: #ffffff !important;
+            direction: rtl !important;  /* القائمة ستذهب لليمين إجبارياً */
+            text-align: right !important;
         }
 
-        /* حاوية التطبيق الرئيسية والقائمة الجانبية نجعل محتواها عربي */
-        .stApp, section[data-testid="stSidebar"] {
-            direction: rtl; 
-            text-align: right;
-        }
-
-        /* 2. القائمة الجانبية الزجاجية (عادت لليسار لتعمل بامتياز) */
+        /* 2. تصميم القائمة الجانبية */
         section[data-testid="stSidebar"] {
             background-image: linear-gradient(160deg, #120002 0%, #000000 100%) !important;
-            border-right: 1px solid rgba(229, 9, 20, 0.2); /* الحد أصبح يمين */
-            border-left: none;
-            box-shadow: 10px 0 30px rgba(0,0,0,0.8);
+            border-left: 1px solid rgba(229, 9, 20, 0.2); 
+            border-right: none;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.8);
         }
-        
-        /* الشعار */
+
+        /* 🛠️ إصلاح زر إغلاق القائمة (X) ليعمل مع الجهة اليمنى */
+        /* نجعل رأس القائمة LTR لكي يبقى زر الإغلاق في مكانه الصحيح برمجياً */
+        section[data-testid="stSidebar"] > div:first-child {
+            direction: ltr;
+        }
+        /* ثم نسحب الزر لليسار يدوياً ليظهر بشكل جميل */
+        section[data-testid="stSidebar"] button[kind="header"] {
+            float: left !important;
+            margin-right: auto !important;
+        }
+
+        /* 3. الشعار */
         .sidebar-logo {
             font-size: 2.5rem; text-align: center; color: #fff; font-weight: 900; 
             margin-bottom: 40px; letter-spacing: 2px;
@@ -35,7 +41,7 @@ def load_css():
             border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;
         }
 
-        /* 3. البطاقات والخيارات */
+        /* 4. البطاقات والخيارات */
         div[role="radiogroup"] > label > div:first-of-type { display: none; }
         div[role="radiogroup"] > label {
             background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 12px;
@@ -48,7 +54,7 @@ def load_css():
             transform: translateX(-8px);
         }
 
-        /* 4. حقل البحث */
+        /* 5. حقل البحث */
         .stTextInput > div > div > input {
             background-color: rgba(255,255,255,0.05) !important; color: white !important;
             border: 1px solid #333 !important; border-radius: 50px !important;
@@ -58,7 +64,7 @@ def load_css():
             border-color: #E50914 !important; box-shadow: 0 0 15px rgba(229, 9, 20, 0.4) !important;
         }
 
-        /* 5. الأزرار */
+        /* 6. الأزرار */
         .stButton > button {
             background: linear-gradient(90deg, #E50914 0%, #83050b 100%); color: white;
             border: none; border-radius: 8px; padding: 0.6rem 1.2rem; font-weight: 800;
@@ -69,7 +75,7 @@ def load_css():
             box-shadow: 0 0 20px rgba(229, 9, 20, 0.6); transform: scale(1.02);
         }
 
-        /* 6. العناوين */
+        /* 7. العناوين */
         h1 { 
             background: -webkit-linear-gradient(left, #E50914, #ffffff);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -77,9 +83,10 @@ def load_css():
         }
         .stToggle label { color: #E50914 !important; font-weight: bold; }
 
-        /* 7. شريط الأخبار المتحرك */
+        /* 8. شريط الأخبار المتحرك */
+        /* يجب أن يكون الحاوية LTR لكي يعمل الأنيميشن بشكل سليم، لكن النص داخله RTL */
         .ticker-wrap {
-            direction: ltr; /* اتجاه الحاوية LTR ليعمل الأنيميشن */
+            direction: ltr !important; 
             width: 100%; overflow: hidden; 
             background: linear-gradient(90deg, #500000 0%, #E50914 50%, #500000 100%);
             padding: 12px 0; margin-bottom: 25px; border-radius: 8px;
@@ -88,14 +95,14 @@ def load_css():
         .ticker-item {
             display: inline-block; white-space: nowrap; animation: ticker 40s linear infinite;
             color: #ffffff; font-weight: 700; font-size: 1.1rem; 
-            direction: rtl; /* النص بداخله عربي */
+            direction: rtl; 
         }
         @keyframes ticker {
             0% { transform: translate3d(-100%, 0, 0); }
             100% { transform: translate3d(100%, 0, 0); }
         }
 
-        /* 8. أيقونة المنزل 3D */
+        /* 9. أيقونة المنزل 3D */
         section[data-testid="stSidebar"] .stButton:first-of-type button {
             background: linear-gradient(145deg, #E50914, #a30000) !important;
             color: transparent !important; width: 70px !important; height: 70px !important;
@@ -112,10 +119,11 @@ def load_css():
             background: linear-gradient(145deg, #ff1f2c, #c40000) !important;
         }
         
-        /* تصحيحات إضافية */
-        .stRadio div[role="radiogroup"] { flex-direction: column; align-items: stretch; }
+        /* تصحيح اتجاه زر القائمة العلوية (Hamburger Menu) ليذهب لليمين */
+        header[data-testid="stHeader"] {
+            right: 0; left: auto;
+            background: transparent !important;
+        }
         
-        /* زر إغلاق القائمة يعود لمكانه الصحيح */
-        button[kind="header"] { float: right; }
     </style>
     """, unsafe_allow_html=True)
