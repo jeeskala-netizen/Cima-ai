@@ -1,0 +1,4 @@
+streamlit
+requests
+groq
+st-clickable-images
