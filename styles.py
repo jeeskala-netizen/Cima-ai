@@ -3,89 +3,70 @@ import streamlit as st
 def load_css():
     st.markdown("""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&display=swap');
         
-        /* الإعدادات العامة */
+        /* 1. إعدادات الصفحة الأساسية */
         html, body, [class*="st-"] {
-            font-family: 'Cairo', sans-serif;
-            direction: rtl; 
+            font-family: 'Tajawal', sans-serif;
+            direction: rtl;
         }
         
-        /* خلفية الصفحة */
+        /* الخلفية الملكية */
         .stApp {
-            background-color: #050505;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             color: #ffffff;
         }
 
-        /* إخفاء القائمة الجانبية الافتراضية والقوائم العلوية المزعجة */
-        [data-testid="stSidebar"], header, footer {
+        /* 2. 🛑 إخفاء القائمة الجانبية القديمة تماماً (الحل الجذري) */
+        [data-testid="stSidebar"], [data-testid="collapsedControl"] {
             display: none !important;
         }
-
-        /* تنسيق العناوين */
-        h1, h2, h3 {
-            color: #E50914 !important; /* لون نتفليكس الأحمر */
-            text-shadow: 0 0 10px rgba(229, 9, 20, 0.4);
-            font-weight: 800;
+        
+        /* توسيع المحتوى ليأخذ كامل الشاشة */
+        section.main > div {
+            padding-top: 2rem;
+            max-width: 95% !important; /* استغلال العرض الكامل */
         }
 
-        /* تحسين شكل الأزرار */
+        /* 3. تنسيق شريط التنقل العلوي (Navigation Bar) */
+        /* سنجعله يبدو كلوحة تحكم عائمة */
+        .nav-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            backdrop-filter: blur(4px);
+        }
+
+        /* 4. تحسين الأزرار والعناوين */
         .stButton > button {
-            background: linear-gradient(90deg, #E50914 0%, #B20710 100%);
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
+        
         .stButton > button:hover {
-            transform: scale(1.02);
-            box-shadow: 0 6px 20px rgba(229, 9, 20, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(106, 17, 203, 0.5);
         }
 
-        /* شريط الأخبار المتحرك */
-        .ticker-wrap {
-            width: 100%;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.05);
-            border-bottom: 1px solid #E50914;
-            white-space: nowrap;
-            padding: 10px 0;
-            margin-bottom: 20px;
-        }
-        .ticker-item {
-            display: inline-block;
-            padding-right: 100%;
-            animation: ticker 30s linear infinite;
-            color: #ccc;
-            font-size: 0.9rem;
-        }
-        @keyframes ticker {
-            0% { transform: translate3d(0, 0, 0); }
-            100% { transform: translate3d(100%, 0, 0); } /* تعديل للحركة العربية */
-        }
-
-        /* كروت الأفلام */
-        div[data-testid="caption"] {
+        h1, h2 {
+            background: -webkit-linear-gradient(#fff, #a18cd1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             text-align: center;
-            font-size: 0.9em;
-            color: #aaa;
         }
+
+        /* إخفاء الهيدر والفوتر الافتراضي */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
         
-        /* تخصيص الـ Tab العلوي */
-        .nav-link-selected {
-            background-color: #E50914 !important;
-        }
-        
-        /* الصناديق والتحليل */
-        .analysis-box {
-            background: rgba(255,255,255,0.05);
-            padding: 20px;
-            border-radius: 15px;
-            border-right: 5px solid #E50914;
-            line-height: 1.8;
-            margin-top: 20px;
-        }
     </style>
     """, unsafe_allow_html=True)
