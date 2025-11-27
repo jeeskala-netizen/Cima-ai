@@ -5,31 +5,35 @@ def load_css():
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&display=swap');
         
-        /* 1. إعدادات الصفحة الأساسية */
         html, body, [class*="st-"] {
             font-family: 'Tajawal', sans-serif;
             direction: rtl;
         }
         
-        /* الخلفية الملكية */
         .stApp {
             background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             color: #ffffff;
         }
 
-        /* 2. 🛑 إخفاء القائمة الجانبية القديمة تماماً (الحل الجذري) */
+        /* 🛑 إخفاء العناصر الإدارية وأشرطة Streamlit (الحل النهائي) */
+        .stDeployButton {display: none !important;} /* زر Manage app */
+        [data-testid="stToolbar"] {visibility: hidden !important;} /* الشريط العلوي للمطورين */
+        [data-testid="stDecoration"] {display: none !important;} /* الخط الملون أعلى الصفحة */
+        .viewerBadge_container__1QSob {display: none !important;} /* أيقونة المشاهدين */
+        #MainMenu {visibility: hidden;} /* القائمة الرئيسية */
+        footer {visibility: hidden;} /* الفوتر */
+        header {visibility: hidden;} /* الهيدر */
+
+        /* باقي التنسيقات كما هي... */
         [data-testid="stSidebar"], [data-testid="collapsedControl"] {
             display: none !important;
         }
         
-        /* توسيع المحتوى ليأخذ كامل الشاشة */
         section.main > div {
             padding-top: 2rem;
-            max-width: 95% !important; /* استغلال العرض الكامل */
+            max-width: 95% !important;
         }
 
-        /* 3. تنسيق شريط التنقل العلوي (Navigation Bar) */
-        /* سنجعله يبدو كلوحة تحكم عائمة */
         .nav-container {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
@@ -40,7 +44,6 @@ def load_css():
             backdrop-filter: blur(4px);
         }
 
-        /* 4. تحسين الأزرار والعناوين */
         .stButton > button {
             background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
             color: white;
@@ -62,11 +65,10 @@ def load_css():
             -webkit-text-fill-color: transparent;
             text-align: center;
         }
-
-        /* إخفاء الهيدر والفوتر الافتراضي */
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
         
+        div[data-baseweb="select"] > div {
+            direction: rtl;
+            text-align: right;
+        }
     </style>
     """, unsafe_allow_html=True)
