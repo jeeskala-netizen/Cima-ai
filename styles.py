@@ -5,35 +5,63 @@ def load_css():
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&display=swap');
         
+        /* 1. الأساسيات */
         html, body, [class*="st-"] {
             font-family: 'Tajawal', sans-serif;
             direction: rtl;
         }
         
+        /* الخلفية */
         .stApp {
             background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             color: #ffffff;
         }
 
-        /* 🛑 إخفاء العناصر الإدارية وأشرطة Streamlit (الحل النهائي) */
-        .stDeployButton {display: none !important;} /* زر Manage app */
-        [data-testid="stToolbar"] {visibility: hidden !important;} /* الشريط العلوي للمطورين */
-        [data-testid="stDecoration"] {display: none !important;} /* الخط الملون أعلى الصفحة */
-        .viewerBadge_container__1QSob {display: none !important;} /* أيقونة المشاهدين */
-        #MainMenu {visibility: hidden;} /* القائمة الرئيسية */
-        footer {visibility: hidden;} /* الفوتر */
-        header {visibility: hidden;} /* الهيدر */
-
-        /* باقي التنسيقات كما هي... */
+        /* ============================================================
+           🛑 منطقة الإخفاء التام (The Ultimate Hidden Zone)
+           هذه الأكواد تخفي كل شعارات Streamlit وأشرطة الأدوات
+           ============================================================ */
+        
+        /* إخفاء القائمة الجانبية القديمة */
         [data-testid="stSidebar"], [data-testid="collapsedControl"] {
             display: none !important;
         }
         
-        section.main > div {
-            padding-top: 2rem;
-            max-width: 95% !important;
+        /* إخفاء الهيدر والفوتر */
+        header {visibility: hidden !important;}
+        footer {visibility: hidden !important;}
+        #MainMenu {visibility: hidden !important;}
+        
+        /* إخفاء شريط الأدوات المزعج (الزر الأحمر في الزاوية) */
+        .stApp > header {
+            display: none !important;
+        }
+        
+        /* إخفاء زر "Manage App" وزر "Deploy" */
+        .stDeployButton {
+            display: none !important;
+        }
+        
+        /* إخفاء أيقونة الحالة والخيارات في الزاوية اليمنى العليا */
+        [data-testid="stToolbar"], [data-testid="stHeader"] {
+            visibility: hidden !important;
+            display: none !important;
+            height: 0px !important;
+        }
+        
+        /* إخفاء شارة "Viewer Badge" (Hosted with Streamlit) في الأسفل */
+        .viewerBadge_container__1QSob, [data-testid="stDecoration"] {
+            display: none !important;
+        }
+        
+        /* حل إضافي قوي: إخفاء أي عنصر في الزاوية السفلية */
+        div:has(> .viewerBadge_container__1QSob) {
+            display: none !important;
         }
 
+        /* ============================================================ */
+
+        /* 3. تنسيق القائمة العلوية (Nav Bar) */
         .nav-container {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
@@ -42,6 +70,12 @@ def load_css():
             margin-bottom: 30px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             backdrop-filter: blur(4px);
+        }
+
+        /* 4. تحسين العناصر */
+        section.main > div {
+            padding-top: 1rem !important; /* تقليل المساحة العلوية لأننا أخفينا الهيدر */
+            max-width: 95% !important;
         }
 
         .stButton > button {
