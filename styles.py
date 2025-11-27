@@ -18,44 +18,36 @@ def load_css():
         }
 
         /* ============================================================
-           🛑 منطقة الإخفاء التام (The Ultimate Hidden Zone)
-           هذه الأكواد تخفي كل شعارات Streamlit وأشرطة الأدوات
+           🛑 منطقة الإخفاء التام (The Ultimate Clean-up) 🛑
            ============================================================ */
         
-        /* إخفاء القائمة الجانبية القديمة */
-        [data-testid="stSidebar"], [data-testid="collapsedControl"] {
+        /* 1. إخفاء الزر الأحمر (التاج) وشارة المشاهد في الزاوية اليمنى السفلى */
+        /* نستهدف أي عنصر يحتوي اسمه على viewerBadge مهما تغيرت الأرقام بعده */
+        div[class^="viewerBadge_container"], 
+        div[class*="viewerBadge"], 
+        .viewerBadge_container__1QSob {
             display: none !important;
-        }
-        
-        /* إخفاء الهيدر والفوتر */
-        header {visibility: hidden !important;}
-        footer {visibility: hidden !important;}
-        #MainMenu {visibility: hidden !important;}
-        
-        /* إخفاء شريط الأدوات المزعج (الزر الأحمر في الزاوية) */
-        .stApp > header {
-            display: none !important;
-        }
-        
-        /* إخفاء زر "Manage App" وزر "Deploy" */
-        .stDeployButton {
-            display: none !important;
-        }
-        
-        /* إخفاء أيقونة الحالة والخيارات في الزاوية اليمنى العليا */
-        [data-testid="stToolbar"], [data-testid="stHeader"] {
             visibility: hidden !important;
-            display: none !important;
-            height: 0px !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
-        
-        /* إخفاء شارة "Viewer Badge" (Hosted with Streamlit) في الأسفل */
-        .viewerBadge_container__1QSob, [data-testid="stDecoration"] {
+
+        /* 2. إخفاء زر "Manage App" والأدوات العلوية */
+        .stDeployButton, 
+        [data-testid="stToolbar"], 
+        [data-testid="stHeader"], 
+        [data-testid="stDecoration"], 
+        [data-testid="stStatusWidget"] {
             display: none !important;
+            visibility: hidden !important;
         }
-        
-        /* حل إضافي قوي: إخفاء أي عنصر في الزاوية السفلية */
-        div:has(> .viewerBadge_container__1QSob) {
+
+        /* 3. إخفاء القوائم الجانبية القديمة والهيدر/الفوتر */
+        [data-testid="stSidebar"], 
+        [data-testid="collapsedControl"], 
+        #MainMenu, 
+        footer, 
+        header {
             display: none !important;
         }
 
@@ -74,7 +66,7 @@ def load_css():
 
         /* 4. تحسين العناصر */
         section.main > div {
-            padding-top: 1rem !important; /* تقليل المساحة العلوية لأننا أخفينا الهيدر */
+            padding-top: 1rem !important;
             max-width: 95% !important;
         }
 
