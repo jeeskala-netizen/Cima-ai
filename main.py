@@ -2,13 +2,15 @@ import streamlit as st
 from st_clickable_images import clickable_images
 from streamlit_option_menu import option_menu
 import config
-import styles
+import styles # تأكد أنك تستورد الملف الجديد
 import api
 import re 
 
 # --- 1. الإعدادات ---
 st.set_page_config(page_title="AI Cinema Hub", page_icon="🔮", layout="wide")
-styles.load_css()
+
+# تحميل التصميم الجديد + كود الجافاسكريبت المخفي
+styles.load_css() 
 
 # --- Router ---
 def update_url(page_name):
@@ -152,7 +154,7 @@ def show_details(item):
 
 # --- 5. الصفحات ---
 
-# 1. شات (تم تعديل الزر هنا 🛠️)
+# 1. شات
 if st.session_state.page == "chat_home":
     with st.container(border=True):
         col_set, col_btn = st.columns([3, 1])
@@ -160,7 +162,6 @@ if st.session_state.page == "chat_home":
             selected_persona = st.radio("الشخصية:", ["الصديق الناصح 🤝", "الناقد القاسي 🧐", "الجوكر الساخر 🤡", "المتحمس (Fanboy) 🤩"], horizontal=True, label_visibility="collapsed")
         with col_btn: 
             st.markdown("<br>", unsafe_allow_html=True)
-            # ✅ الزر الجديد: أيقونة جميلة ونص واضح
             if st.button("🎭 تغيير الشخصية", use_container_width=True): 
                 st.session_state.messages = []
                 new_welcome = get_welcome_msg(selected_persona)
@@ -210,41 +211,16 @@ elif st.session_state.page == "dna_analysis":
         if st.session_state.dna_result: st.success("النتيجة:"); extract_and_display_media(st.session_state.dna_result, 999)
 
 # 4. توحيد السهرة
-# 4. توحيد السهرة (Movie Matchmaker)
 elif st.session_state.page == "matchmaker":
-    # العنوان الرئيسي
-    st.markdown("<h1 style='text-align: center; color: #E50914;'>⚖️ توحيد السهرة</h1>", unsafe_allow_html=True)
-    
-    # --- الإضافة الجديدة: الشرح التوضيحي ---
-    st.markdown("""
-    <div style='text-align: center; color: #ccc; margin-bottom: 30px; font-size: 1.1rem;'>
-    مختلفين على فيلم السهرة؟ 🤔<br>
-    لا داعي للنقاش! اكتب نوع الأفلام الذي يحبه <b>الطرف الأول</b>، والنوع الذي يحبه <b>الطرف الثاني</b>، 
-    وسيقوم الذكاء الاصطناعي بإيجاد <b>"الحل الوسط"</b> العبقري الذي يرضي الجميع! 🍿🤝
-    </div>
-    """, unsafe_allow_html=True)
-    # ---------------------------------------
-
+    st.markdown("<h2 style='text-align: center;'>⚖️ توحيد السهرة</h2>", unsafe_allow_html=True)
+    st.markdown("""<div style='text-align: center; color: #ccc; margin-bottom: 30px; font-size: 1.1rem;'>مختلفين على فيلم السهرة؟ 🤔<br>اكتبوا أنواع الأفلام وسأجد لكم الحل الوسط! 🍿🤝</div>""", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
-    with c1:
-        st.markdown("### 👤 الطرف الأول")
-        u1 = st.text_input("ماذا يحب؟", placeholder="مثال: أفلام رعب، زومبي، أكشن...")
-    with c2:
-        st.markdown("### 👤 الطرف الثاني")
-        u2 = st.text_input("ماذا يحب؟", placeholder="مثال: أفلام رومانسية، كوميديا، دراما...")
-    
-    st.markdown("<br>", unsafe_allow_html=True) # مسافة
-    
-    if st.button("✨ جد لنا الحل العبقري!", use_container_width=True):
+    with c1: u1 = st.text_input("ذوق الطرف الأول")
+    with c2: u2 = st.text_input("ذوق الطرف الثاني")
+    if st.button("✨ جد الحل!", use_container_width=True):
         if u1 and u2:
-            with st.spinner("جاري تحليل الأذواق والبحث عن نقطة الالتقاء... 🔄"):
-                st.session_state.match_result = api.find_match(u1, u2)
-        else:
-            st.warning("⚠️ يرجى كتابة تفضيلات الطرفين أولاً!")
-
-    if st.session_state.match_result:
-        st.success("🎉 وجدنا الحل المناسب لكم!")
-        extract_and_display_media(st.session_state.match_result, 888)
+            with st.spinner("جاري البحث..."): st.session_state.match_result = api.find_match(u1, u2)
+    if st.session_state.match_result: st.success("الحل:"); extract_and_display_media(st.session_state.match_result, 888)
 
 # 5. التفاصيل
 elif st.session_state.page == "details":
